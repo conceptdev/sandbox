@@ -26,7 +26,7 @@ These steps will walk through the process of setting up a Unity project that lev
 > [!NOTE]
 > This project requires the "experimental" .NET 4.6 Mono scripting runtime in Unity 2017. [Unity has stated that soon this will be the default](https://forum.unity3d.com/threads/future-plans-for-the-mono-runtime-upgrade.464327/), however for now, it is still labeled as "experimental" and you may  experience issues.
 
-> We will be using an experimental Azure Mobile Client SDK in this tutorial, and, as such, this may not build and run on every single Unity platform.  Please see the [SDK article](sandbox/gamedev/unity/azure-mobile-apps-unity) for a list of known working platforms.
+> We will be using an experimental Azure Mobile Client SDK in this tutorial, and, as such, this may not build and run on every single Unity platform.  Please see the [SDK article](/gamedev/unity/azure-mobile-apps-unity) for a list of known working platforms.
 
 ## Configure Easy Tables in Azure
 
