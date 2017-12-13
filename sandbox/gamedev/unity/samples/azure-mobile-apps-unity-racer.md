@@ -26,7 +26,7 @@ These steps will walk through the process of setting up a Unity project that lev
 > [!NOTE]
 > This project requires the "experimental" .NET 4.6 Mono scripting runtime in Unity 2017. [Unity has stated that soon this will be the default](https://forum.unity3d.com/threads/future-plans-for-the-mono-runtime-upgrade.464327/), however for now, it is still labeled as "experimental" and you may experience issues.
 >
-> In addition, we will be using an experimental Azure Mobile Client SDK in this tutorial, and, as such, this may not build and run on every single Unity platform.  Please see the [SDK article](/sandbox/gamedev/unity/azure-mobile-apps-unity) for a list of known working platforms.
+> In addition, we will be using an experimental Azure Mobile Client SDK in this tutorial, and, as such, this may not build and run on every single Unity platform.  Please see the [Azure Mobile Apps SDK for Unity](/sandbox/gamedev/unity/azure-mobile-apps-unity) article for a list of known working platforms.
 
 ## Configure Easy Tables in Azure
 
@@ -192,7 +192,7 @@ The Azure Mobile Client SDK and its dependencies require the .NET 4.6 runtime.  
 
 1. From the Unity **Edit** menu, choose **Project Settings > Player**.
 
-1. The Player Settings opens in the Unity Inspector window. Under the **Configuration** heading, click the **Scripting Runtime Version** dropdown and select **Experimental (.NET 4.6 Equivalent)**. This will prompt a dialog asking to restart Unity. Select **Restart**.
+1. The Player Settings opens in the Unity Inspector window. Under the **Configuration** heading in the **Other Settings** section, click the **Scripting Runtime Version** dropdown and select **Experimental (.NET 4.6 Equivalent)**. This will prompt a dialog asking to restart Unity. Select **Restart**.
 
    ![Select .NET 4.6](media/vstu_azure-prepare-dev-environment-image6.png)
 
@@ -355,47 +355,16 @@ Before viewing the leaderboard or heatmap, it's best to create some sample data 
 
 The RaceScene uses Unity [Standard Assets](https://www.assetstore.unity3d.com/en/#!/content/32351) to compose the basic racing gameplay and level.
 
-### RecordCrashInfo
+### RecordCrashInfo script
 
 This script checks for crashes in `OnCollisionEnter` and records them to a list. `crashRecordingCooldown` and `crashRecordingMinVelocity` limit what the game considers a crash in order to keep a relevant data set.
 
-When the `RaceFinished` event is raised, `UploadNewCrashDataAsync` sends each crash in the list to the CrashInfo Easy Table on Azure.
+When the `RaceFinished` event is raised, `UploadNewCrashDataAsync` sends each crash in the list to the CrashInfo Easy Table on Azure.  Here are some snippets from the `RecordCrashInfo` script showing this in action.
 
 ```csharp
 public class RecordCrashInfo : MonoBehaviour
 {
-    [Tooltip("Time in seconds after a crash before a new crash can be recorded.")]
-    [SerializeField]
-    private float crashRecordingCooldown = 1;
-
-    [Tooltip("How fast car must be traveling before crash can be recorded.")]
-    [SerializeField]
-    private float crashRecordingMinVelocity = 8;
-
-    [SerializeField]
-    private Rigidbody carRigidbody;
-
-    [SerializeField]
-    private GameObject crashMarkerPrefab;
-
-    [Tooltip("If turned on, crash markers spawn when the player crashes.")]
-    [SerializeField]
-    private bool spawnDebugMarkers = false;
-
-    private bool isOnCooldown = false;
-    private bool meetsMinVelocity = false;
-    private bool isRaceFinished = false;
-
     private List<CrashInfo> newCrashes = new List<CrashInfo>();
-
-    private void LateUpdate()
-    {
-        // We have to update this in LateUpdate as opposed to checking in OnCollisionEnter.
-        // The car's velocity has already decreased from crashing by the time
-        // OnCollisionEnter gets called.
-
-        meetsMinVelocity = carRigidbody.velocity.magnitude >= crashRecordingMinVelocity;
-    }
 
     private void OnCollisionEnter(Collision collision)
     {
@@ -415,16 +384,10 @@ public class RecordCrashInfo : MonoBehaviour
 
             isOnCooldown = true;
             StartCoroutine(Cooldown());
-        }  
+        }
     }
 
-    private IEnumerator Cooldown()
-    {
-        yield return new WaitForSeconds(crashRecordingCooldown);
-
-        isOnCooldown = false;
-    }
-
+    // called by the Checkpoint.RaceFinished event handler
     private void OnRaceFinished()
     {
         Task.Run(UploadNewCrashDataAsync);
@@ -448,55 +411,25 @@ public class RecordCrashInfo : MonoBehaviour
         {
             Debug.Log("Error uploading crash data: " + e.Message);
         }
-
     }
-
-    private void OnEnable()
-    {
-        Checkpoint.RaceFinished += OnRaceFinished;
-    }
-
-    private void OnDisable()
-    {
-        Checkpoint.RaceFinished -= OnRaceFinished;
-    }
-
 }
 ```
 
-## RecordHighScore
+## RecordHighScore script
 
 This script checks to see if the player has earned a new high score. If they have, it displays the `enterNamePopup`, which allows the player to enter their name and click **Submit**.
 
-Once a player name is submitted, `UploadNewHighScoreAsync` is called and the new high score is sent to the HighScoreInfo Easy Table on Azure.
+Once a player name is submitted, `UploadNewHighScoreAsync` is called and the new high score is sent to the HighScoreInfo Easy Table on Azure.  Here are the important parts:
 
 ```csharp
 public class RecordHighScore : MonoBehaviour
 {
-    [SerializeField]
-    private InputField nameInputField;
-
-    [SerializeField]
-    private CanvasGroup enterNamePopup;
-
     private List<HighScoreInfo> highScores;
     private string playerName = string.Empty;
 
     private async void Start()
     {
-        ShowEnterNamePopup(false);
         highScores = await Leaderboard.GetTopHighScoresAsync();
-    }
-
-    private void ShowEnterNamePopup(bool shouldShow)
-    {
-        enterNamePopup.alpha = shouldShow ? 1 : 0;
-        enterNamePopup.interactable = shouldShow;
-    }
-
-    public void SubmitButtonClicked()
-    {
-        playerName = nameInputField.text;
     }
 
     private async void OnAfterMostRecentScoreSet(float newScore)
@@ -513,24 +446,6 @@ public class RecordHighScore : MonoBehaviour
         {
             Debug.Log("No new high score.");
         }
-    }
-
-    private async Task GetPlayerNameAsync()
-    {
-        // Wait a bit before showing the popup.
-        // This just helps the player experience feel
-        // less jarring.
-        await Task.Delay(2000);
-        ShowEnterNamePopup(true);
-
-        // Wait until the player enters a name and clicks submit.
-        // OnSubmitButtonClicked will set the playerName.
-        while (playerName == string.Empty)
-        {
-            await Task.Delay(100);
-        }
-
-        ShowEnterNamePopup(false);
     }
 
     private bool CheckForNewHighScore(float newScore)
@@ -560,25 +475,14 @@ public class RecordHighScore : MonoBehaviour
             Debug.Log("Error uploading high score data: " + e.Message);
         }
     }
-
-    private void OnEnable()
-    {
-        LapTimer.AfterMostRecentScoreSet += OnAfterMostRecentScoreSet;
-    }
-
-    private void OnDisable()
-    {
-        LapTimer.AfterMostRecentScoreSet -= OnAfterMostRecentScoreSet;
-    }
-
 }
 ```
 
-## HeatmapScene explanation
+## HeatmapScene script
 
 The HeatmapScene contains an instance of the **LevelGeometry** prefab. This way the coordinates for crashes loaded from Azure map correctly to the level art.
 
-### InitializeCrashListAsync
+### InitializeCrashListAsync method
 
 `InitializeCrashListAsync` connects to the CrashInfo Easy Table on Azure and uses [ToListAsync](TODO) to add all of its entries to a list.
 
@@ -609,7 +513,7 @@ private async Task InitializeCrashListAsync()
  }
 ```
 
-### DeleteCrashDataAsync
+### DeleteCrashDataAsync method
 
 `DeleteCrashDataAsync` is called when the user presses the **Clear Data** button. It iterates through the local list of crashes and calls [DeleteAsync](TODO) for each entry. This sets each entry's **Deleted** column in the Easy Table to **true**. `ToListAsync` ignores these deleted entries.
 
@@ -642,21 +546,8 @@ The `Leaderboard` class uses an `async Start` function, which is still called wh
 Then an instance of the high score row UI prefab is instantiated for each entry in the list.
 
 ```csharp
-using Microsoft.WindowsAzure.MobileServices;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using UnityEngine;
-using System;
-using UnityEngine.UI;
-
 public class Leaderboard : MonoBehaviour
 {
-    [SerializeField]
-    private GameObject rowPrefab;
-
-    [SerializeField]
-    private Text loadingText;
-
     public const int SizeOfHighScoreList = 10;
     private static int numberOfAttemptsToLoadData = 3;
     private static IMobileServiceTable<HighScoreInfo> highScoreTable_UseProperty;
@@ -676,7 +567,7 @@ public class Leaderboard : MonoBehaviour
 
     public static async Task<List<HighScoreInfo>> GetTopHighScoresAsync()
     {
-            return await DownloadHighScoresAsync(true);
+        return await DownloadHighScoresAsync(true);
     }
 
     private static async Task<List<HighScoreInfo>> DownloadHighScoresAsync(bool onlyTopEntries)
@@ -767,3 +658,7 @@ public class Leaderboard : MonoBehaviour
     }
 }
 ```
+
+## Export for a Target Platform
+
+The experimental Mobile Apps SDK supports the most popular Unity targets.  Please check the [Azure Mobile Apps SDK for Unity](/sandbox/gamedev/unity/azure-mobile-apps-unity) article to see which platforms are supported and any known issues for exporting to those platforms.
