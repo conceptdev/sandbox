@@ -1,5 +1,5 @@
 ---
-title: "Auzre Mobile Apps with Unity"
+title: "Use Azure Easy Tables and the Mobile Apps SDK with Unity"
 ms.custom: ""
 ms.date: "12/08/2017"
 ms.reviewer: "crdun"
@@ -13,7 +13,7 @@ author: "dantogno"
 ms.author: "v-davian"
 manager: "crdun"
 ---
-# Using Azure Easy Tables with Unity Walkthrough
+# Use Azure Easy Tables and the Mobile Apps SDK with Unity
 
 ![Sample game screenshot](media/vstu_azure-test-sample-game-image2.png)
 
@@ -24,9 +24,9 @@ Azure provides a scalable solution to storing telemetry and other game data in t
 These steps will walk through the process of setting up a Unity project that leverages Azure for saving telemetry and leaderboard data in the cloud.  The completed project is available on [GitHub](TODO). However, the walkthrough will assume you are starting from an empty, new project and will provide links to download assets when necessary.
 
 > [!NOTE]
-> This project requires the "experimental" .NET 4.6 Mono scripting runtime in Unity 2017. [Unity has stated that soon this will be the default](https://forum.unity3d.com/threads/future-plans-for-the-mono-runtime-upgrade.464327/), however for now, it is still labeled as "experimental" and you may  experience issues.
-
-> We will be using an experimental Azure Mobile Client SDK in this tutorial, and, as such, this may not build and run on every single Unity platform.  Please see the [SDK article](/gamedev/unity/azure-mobile-apps-unity) for a list of known working platforms.
+> This project requires the "experimental" .NET 4.6 Mono scripting runtime in Unity 2017. [Unity has stated that soon this will be the default](https://forum.unity3d.com/threads/future-plans-for-the-mono-runtime-upgrade.464327/), however for now, it is still labeled as "experimental" and you may experience issues.
+>
+> In addition, we will be using an experimental Azure Mobile Client SDK in this tutorial, and, as such, this may not build and run on every single Unity platform.  Please see the [SDK article](/sandbox/gamedev/unity/azure-mobile-apps-unity) for a list of known working platforms.
 
 ## Configure Easy Tables in Azure
 
@@ -178,88 +178,63 @@ The walkthrough requires Visual Studio 2017 15.3 and above, with the game develo
    > [!NOTE]
    > If Visual Studio 2017 is already installed, you can view and modify workloads by running the Visual Studio Installer.
 
-### Create a new 3D Unity project
+### Download the Project
 
-Launch Unity and create a new 3D project.
+Clone from GitHub or download
 
-![Create new Unity project](media/vstu_azure-prepare-dev-environment-image1.png)
+## Project Walkthrough
 
-### Set the script editor to Visual Studio Preview 2017
+This is a large project, so we will explore the important parts that demonstrate how to use Easy Tables with the experimental Mobile Apps SDK.
 
-It's possible that you already have Visual Studio 2017 set as Unity's external script editor, but it's important to ensure the 15.3 Preview version is selected.
+### Unity Scripting Runtime
 
-1. From the Unity **Edit** menu, choose **Edit > Preferences...**.
+The Azure Mobile Client SDK and its dependencies require the .NET 4.6 runtime.  You'll find that this is set in the project settings.
 
-   ![Open Preferences menu](media/vstu_azure-prepare-dev-environment-image1.2.png)
-
-1. When the Unity Preferences window pops up, select the **External Tools** tab on the left side.
-
-1. In the **External Script Editor** dropdown menu, select **Visual Studio 2017**.
-
-   ![Set external script editor](media/vstu_azure-prepare-dev-environment-image3.png)
-
-### Change the Unity scripting runtime to .NET 4.6
-
-The walkthrough requires .NET 4.6 in order to use the Azure Mobile Client SDK and its dependencies.
-
-1. From the Unity **File** menu, choose **File > Build Settings...**.
-
-   ![Open build settings](media/vstu_azure-prepare-dev-environment-image4.png)
-
-1. Click the **Player Settings...** button.
-
-   ![Open player settings](media/vstu_azure-prepare-dev-environment-image5.png)
+1. From the Unity **Edit** menu, choose **Project Settings > Player**.
 
 1. The Player Settings opens in the Unity Inspector window. Under the **Configuration** heading, click the **Scripting Runtime Version** dropdown and select **Experimental (.NET 4.6 Equivalent)**. This will prompt a dialog asking to restart Unity. Select **Restart**.
 
    ![Select .NET 4.6](media/vstu_azure-prepare-dev-environment-image6.png)
 
-### Imort the Mobile Apps SDK
+### Import the Mobile Apps SDK
 
 **TODO**
 
-## Create data model classes
+## CrashInfo class
 
-The Unity project must contain data model classes that correspond with the tables created in the Azure Mobile App backend.
+The Unity project must contain data model classes that correspond with the tables created in the Azure Mobile App backend.  You can find these in the **Assets\Scripts\Data Models** directory in the project.
 
-### Create the CrashInfo class
+The **CrashInfo**  class looks like this:
 
-1. In Unity, add a new folder in the root **Assets** directory named **Scripts**. Inside of the new Scripts folder, create another new folder named **Data Models**. This is for organization only.
+```csharp
+public class CrashInfo
+{
+    public string Id { get; set; }
+    public float X { get; set; }
+    public float Y { get; set; }
+    public float Z { get; set; }
+}
+```
 
-1. Inside the new Data Models folder, create a new C# script called **CrashInfo**.
+> [!INFO]
+> For Easy Tables to work, the name of the data model class must match the name of the Easy Table created on the Azure Mobile App backend.
 
-1. Open the new `CrashInfo` script, delete any template code, including the class declaration and using statements, and add the following:
+### HighScoreInfo class
 
-   ```csharp
-   public class CrashInfo
-   {
-        public string Id { get; set; }
-        public float X { get; set; }
-        public float Y { get; set; }
-        public float Z { get; set; }
-   }
-   ```
+This class will contain the information required to store a high score entry:
 
-  > [!WARNING]
-  > For the walkthrough to work correctly, the name of the data model class must match the name of the Easy Table created on the Azure Mobile App backend.
+```csharp
+public class HighScoreInfo
+{
+    public string Name { get; set; }
+    public float Time { get; set; }
+    public string Id { get; set; }
+}
+```
 
-### Create the HighScoreInfo class
+## The Azure MobileServiceClient
 
-1. Inside the Data Models folder, create a new C# script called **HighScoreInfo**.
-
-1. Open the new `HighScoreInfo` script, delete any template code, including the class declaration and using statements, and add the following:
-
-   ```csharp
-   public class HighScoreInfo
-   {
-        public string Name { get; set; }
-        public float Time { get; set; }
-        public string Id { get; set; }
-   }
-   ```
-## Implement the Azure MobileServiceClient
-
-Central to the Azure Mobile Client SDK is the [MobileServiceClient](TODO), which allows access to your Mobile App backend.
+Central to the Azure Mobile Client SDK is the [MobileServiceClient](TODO), which allows access to your Mobile App backend.  To use this, you will need the URL of your mobile service backend.
 
 ### Locate the URL of the Mobile App backend
 
@@ -277,145 +252,43 @@ The `MobileServiceClient` constructor takes the Mobile App URL as a parameter, s
 
    ![Copy URL](media/vstu_azure-implement-azure-mobileserviceclient-image3.png)
 
-### Create the MobileServiceClient singleton
+### The obileServiceClient singleton
 
 There should only be a single instance of `MobileServiceClient`, so the walkthrough uses a variation of the singleton pattern.
 
-1. Inside of the **Assets/Scripts** directory of your Unity project, create a new C# script named **AzureMobileServiceClient**.
+1. Inside of the **Assets/Scripts** directory of your Unity project, look for the C# script named **AzureMobileServiceClient**.
 
-1. Open the `AzureMobileServiceClient` script and delete any existing template code, including using statements and the class declaration.
+```csharp
+using Microsoft.WindowsAzure.MobileServices;
 
-1. Add the following code:
+public static class AzureMobileServiceClient
+{
+    private const bool ignoreTls = true;
+    private const string backendUrl = "MOBILE_APP_URL";
+    private static MobileServiceClient client;
 
-   ```csharp
-   using Microsoft.WindowsAzure.MobileServices;
- 
-   public static class AzureMobileServiceClient
-   {
-        private const bool ignoreTls = true;
-        private const string backendUrl = "MOBILE_APP_URL";
-        private static MobileServiceClient client;
- 
-        public static MobileServiceClient Client
+    public static MobileServiceClient Client
+    {
+        get
         {
-            get
-            {
-                if (client == null)
-                    client = new MobileServiceClient(backendUrl);
- 
-                return client;
-            }
-        }
-   }
-   ```
+            if (client == null)
+                client = new MobileServiceClient(backendUrl);
 
-  > [!NOTE]
-  > If IntelliSense does not recognize the Microsoft.WindowsAzure namespace, check that you have completed all of the steps in the [Prepare the development environment](TODO) section.
+            return client;
+       }
+    }
+}
+```
 
-1. In the preceding code, replace `MOBILE_APP_URL` with the URL of your Mobile App backend.
+1. In the preceding code, replace `MOBILE_APP_URL` with the URL of your Mobile App backend, however ensure you are using the **http://** endpoint and not **https://**.  Due to a Unity limitation, HTTPS requests using the standard .NET networking stack (i.e. not using UnityWebRequest) will fail.  To workaround this, you will need to use the **http** version of the Mobile Apps endpoint instead of **https**.  **This means your data will not be encrypted to and from the server.**
 
 ## Test the client connection
 
-Now that the AzureMobileServiceClient singleton is created, it's time to test the client connection.
-
-### Create the TestClientConnection script
-
-1. Inside the **Scripts** folder in Unity, create a new C# script called **TestClientConnection**.
-
-1. Open the script in Visual Studio, delete any template code, and add the following:
-
-  ```csharp
-  using System.Collections.Generic;
-  using UnityEngine;
-  using System.Threading.Tasks;
-  using System;
-  using System.Linq;
-  using Microsoft.WindowsAzure.MobileServices;
-
-  public class TestClientConnection : MonoBehaviour
-  {
-      void Start()
-      {
-          Task.Run(TestTableConnection);
-      }
-
-      private async Task TestTableConnection()
-      {
-          var table = AzureMobileServiceClient.Client.GetTable<CrashInfo>();
-
-          Debug.Log("Testing ToListAsync...");
-          await TestToListAsync(table);
-
-          Debug.Log("Testing InsertAsync...");
-          await TestInsertAsync(table);
-
-          Debug.Log("Testing DeleteAsync...");
-          await TestDeleteAsync(table);
-
-          Debug.Log("All testing complete.");
-      }
-
-      private async Task TestInsertAsync(IMobileServiceTable<CrashInfo> table)
-      {
-          try
-          {
-              var allEntries = await TestToListAsync(table);
-              var initialCount = allEntries.Count();
-
-              await table.InsertAsync(new CrashInfo { X = 1, Y = 2, Z = 3 });
-
-              allEntries = await TestToListAsync(table);
-              var newCount = allEntries.Count();
-
-              Debug.Assert(newCount == initialCount + 1, "InsertAsync failed!");
-          }
-          catch (Exception)
-          {
-              throw;
-          }
-      }
-
-      private async Task<List<CrashInfo>> TestToListAsync(IMobileServiceTable<CrashInfo> table)
-      {
-          try
-          {
-              var allEntries = await table.ToListAsync();
-              Debug.Assert(allEntries != null, "ToListAsync failed!");
-              return allEntries;
-          }
-          catch (Exception)
-          {
-
-              throw;
-          }
-      }
-
-      private async Task TestDeleteAsync(IMobileServiceTable<CrashInfo> table)
-      {
-          var allEntries = await TestToListAsync(table);
-
-          foreach (var item in allEntries)
-          {
-              try
-              {
-                  await table.DeleteAsync(item);
-              }
-              catch (Exception)
-              {
-                  throw;
-              }
-          }
-
-          allEntries = await TestToListAsync(table);
-
-          Debug.Assert(allEntries.Count() == 0, "DeleteAsync failed!");
-      }
-  }
-  ```
+Now that the AzureMobileServiceClient singleton is created, it's time to test the client connection.  This is done with the **TestClientConnection.cs** script located in the **Scripts** directory.  To use it, do the following:
 
 1. In the Unity **GameObject** menu, select **GameObject > Create Empty** to create an empty GameObject in the Unity scene. Rename it **TestClientConnection**.
 
-1. **Drag** the TestClientConnection script from the Unity **Project** window onto the TestClientConnection GameObject in the **Hierarchy** window.
+1. **Drag** the **TestClientConnection** script from the Unity **Project** window onto the TestClientConnection GameObject in the **Hierarchy** window.
 
 1. In the Unity menu, select **File > Save Scene as...**. Name the scene **Client Connection Test** and click **Save**.
 
@@ -424,34 +297,6 @@ Now that the AzureMobileServiceClient singleton is created, it's time to test th
 1. Open the CrashInfo Easy Table on the Azure portal. It should now have an entry with **X,Y,Z** coordinates of **(1, 2, 3)** and a value of **true** for in the **deleted** column. Each time you run the test, a new entry with the same values but a unique ID should be added to the table.
 
   ![Easy Table entry](media/vstu_azure-test-client-connection-image1.png)
-
-## Import sample game assets
-
-Now that the core functionality has been tested and demonstrated to work, it's time to import the sample game assets.
-
-### Import package
-
-1. Download the [sample game assets package](TODO).
-
-1. Ensure your Unity project is open, then navigate to the download location and double click the file. This will bring up the import dialog in Unity.
-
-1. Click **All** and then click **Import**. Wait for the resulting progress bars to complete.
-
-   ![Import package](media/vstu_azure-import-sample-assets-image1.png)
-
-### Add scenes to Build Settings
-
-Once the files have completed importing, the required scene files must be added in the Unity project's Build Settings.
-
-1. In the Unity Project window, navigate to the **Azure Easy Tables sample game assets/Scenes** directory.
-
-1. From the Unity menu, select **File > Build Settings...**. This will display the Build Settings dialog.
-
-1. Drag the **HeatmapScene**, **LeaderboardScene**, **MenuScene**, and **RaceScene** files from the Project window into the **Scenes In Build** section of the Build Settings dialog.
-
-   ![Import package](media/vstu_azure-import-sample-assets-image2.png)
-
-1. From the Unity menu, select **File > Save Project** to ensure the build settings are saved.
 
 ## Test the sample game
 
@@ -517,11 +362,6 @@ This script checks for crashes in `OnCollisionEnter` and records them to a list.
 When the `RaceFinished` event is raised, `UploadNewCrashDataAsync` sends each crash in the list to the CrashInfo Easy Table on Azure.
 
 ```csharp
-using System.Collections;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using UnityEngine;
-
 public class RecordCrashInfo : MonoBehaviour
 {
     [Tooltip("Time in seconds after a crash before a new crash can be recorded.")]
@@ -631,15 +471,6 @@ This script checks to see if the player has earned a new high score. If they hav
 Once a player name is submitted, `UploadNewHighScoreAsync` is called and the new high score is sent to the HighScoreInfo Easy Table on Azure.
 
 ```csharp
-using System.Collections;
-using System.Collections.Generic;
-using Microsoft.WindowsAzure.MobileServices;
-using UnityEngine;
-using System.Threading.Tasks;
-using System;
-using System.Linq;
-using UnityEngine.UI;
-
 public class RecordHighScore : MonoBehaviour
 {
     [SerializeField]
@@ -778,20 +609,6 @@ private async Task InitializeCrashListAsync()
  }
 ```
 
-### SpawnMarkersFromList
-`SpawnMarkersFromList` iterates through the list of crashes received from Azure and instantiates a crash marker prefab for each entry.
-
-```csharp
-private void SpawnMarkersFromList()
-{
-    foreach (var item in crashesFromServer)
-    {
-        GameObject marker = GameObject.Instantiate(markerPrefab);
-        marker.transform.position = new Vector3 { x = item.X, y = item.Y, z = item.Z };
-    }
-}
-```
-
 ### DeleteCrashDataAsync
 
 `DeleteCrashDataAsync` is called when the user presses the **Clear Data** button. It iterates through the local list of crashes and calls [DeleteAsync](TODO) for each entry. This sets each entry's **Deleted** column in the Easy Table to **true**. `ToListAsync` ignores these deleted entries.
@@ -815,12 +632,6 @@ public async void DeleteCrashDataAsync()
     SceneManager.LoadScene(SceneManager.GetActiveScene().name);
 }
 ```
-
-## LeaderboardScene explanation
-
-The LeaderboardScene is composed of only UI. In the scene Hierarchy, **Alt + click** the **expand arrow** next to the Canvas GameObject to expand it and its child GameObjects. Nested below Canvas and Panel is the Leaderboard GameObject with the Leaderboard script attached.
-
-![Leaderboard GameObject](media/vstu_azure-leaderboard-explanation-image1.png)
 
 ## Leaderboard script
 
