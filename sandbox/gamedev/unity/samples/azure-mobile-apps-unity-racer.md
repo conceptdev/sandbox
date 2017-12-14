@@ -19,13 +19,13 @@ manager: "crdun"
 
 [![Get the source](../../../media/buttons/source2.png)](https://aka.ms/azsamples-unity)
 
-![Sample game screenshot](media/vstu_azure-test-sample-game-image2.png)
-
 ## Introduction
 
 Azure provides a scalable solution to storing telemetry and other game data in the cloud. With the release of Unity 2017, Unity's experimental support for .NET 4.6 makes Azure integration simpler than ever.
 
 These steps will walk through the process of setting up a Unity project that leverages Azure for saving telemetry and leaderboard data in the cloud.  The completed project is available on [GitHub](https://aka.ms/azsamples-unity).
+
+![Sample game screenshot](media/vstu_azure-test-sample-game-image2.png)
 
 > [!NOTE]
 > This project requires the "experimental" .NET 4.6 Mono scripting runtime in Unity 2017. [Unity has stated that soon this will be the default](https://forum.unity3d.com/threads/future-plans-for-the-mono-runtime-upgrade.464327/), however for now, it is still labeled as "experimental" and you may experience issues.
