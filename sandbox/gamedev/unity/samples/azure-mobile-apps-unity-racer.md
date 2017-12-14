@@ -15,7 +15,7 @@ manager: "crdun"
 ---
 # Use Azure Easy Tables and the Mobile Apps SDK with Unity
 
-[!include[](../../includes/header.md)]
+[!include[](../../../includes/header.md)]
 
 [![Get the source](../../../media/buttons/source2.png)](https://aka.ms/azsamples-unity)
 
