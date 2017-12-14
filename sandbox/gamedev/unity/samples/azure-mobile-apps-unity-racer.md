@@ -21,7 +21,7 @@ manager: "crdun"
 
 Azure provides a scalable solution to storing telemetry and other game data in the cloud. With the release of Unity 2017, Unity's experimental support for .NET 4.6 makes Azure integration simpler than ever.
 
-These steps will walk through the process of setting up a Unity project that leverages Azure for saving telemetry and leaderboard data in the cloud.  The completed project is available on [GitHub](TODO). However, the walkthrough will assume you are starting from an empty, new project and will provide links to download assets when necessary.
+These steps will walk through the process of setting up a Unity project that leverages Azure for saving telemetry and leaderboard data in the cloud.  The completed project is available on [GitHub](https://aka.ms/azsamples-unity). However, the walkthrough will assume you are starting from an empty, new project and will provide links to download assets when necessary.
 
 > [!NOTE]
 > This project requires the "experimental" .NET 4.6 Mono scripting runtime in Unity 2017. [Unity has stated that soon this will be the default](https://forum.unity3d.com/threads/future-plans-for-the-mono-runtime-upgrade.464327/), however for now, it is still labeled as "experimental" and you may experience issues.
@@ -227,7 +227,7 @@ public class HighScoreInfo
 }
 ```
 
-> [!INFO]
+> [!NOTE]
 > For Easy Tables to work, the name of the data model classes must match the name of the Easy Table created on the Azure Mobile App backend.
 
 ## The Azure MobileServiceClient
@@ -361,54 +361,45 @@ The RaceScene uses Unity [Standard Assets](https://www.assetstore.unity3d.com/en
 
 This script checks for crashes in `OnCollisionEnter` and records them to a list. `crashRecordingCooldown` and `crashRecordingMinVelocity` limit what the game considers a crash in order to keep a relevant data set.
 
-When the `RaceFinished` event is raised, `UploadNewCrashDataAsync` sends each crash in the list to the CrashInfo Easy Table on Azure.  Here are some snippets from the `RecordCrashInfo` script showing this in action.
+When the `RaceFinished` event is raised, `UploadNewCrashDataAsync` sends each crash in the list to the CrashInfo Easy Table on Azure.  Here are some abbreviated snippets from the `RecordCrashInfo` script showing this in action.
 
 ```csharp
-public class RecordCrashInfo : MonoBehaviour
+private List<CrashInfo> newCrashes = new List<CrashInfo>();
+
+private void OnCollisionEnter(Collision collision)
 {
-    private List<CrashInfo> newCrashes = new List<CrashInfo>();
-
-    private void OnCollisionEnter(Collision collision)
+    if (!isRaceFinished && collision.gameObject.tag == "Wall" && !isOnCooldown && meetsMinVelocity)
     {
-        if (!isRaceFinished && collision.gameObject.tag == "Wall" && !isOnCooldown && meetsMinVelocity)
+        Debug.Log("Collided with wall!");
+        newCrashes.Add(new CrashInfo
         {
-            Debug.Log("Collided with wall!");
-            newCrashes.Add(new CrashInfo
-            {
-                X = collision.transform.position.x,
-                Y = collision.transform.position.y,
-                Z = collision.transform.position.z
-            });
-
-            if (spawnDebugMarkers && Debug.isDebugBuild)
-                Instantiate(crashMarkerPrefab, collision.transform.position, Quaternion.identity);
-
-            isOnCooldown = true;
-            StartCoroutine(Cooldown());
-        }
+            X = collision.transform.position.x,
+            Y = collision.transform.position.y,
+            Z = collision.transform.position.z
+        });
     }
+}
 
-    // called by the Checkpoint.RaceFinished event handler
-    private void OnRaceFinished()
+// called by the Checkpoint.RaceFinished event handler
+private void OnRaceFinished()
+{
+    Task.Run(UploadNewCrashDataAsync);
+}
+
+private async Task UploadNewCrashDataAsync()
+{
+    var crashTable = AzureMobileServiceClient.Client.GetTable<CrashInfo>();
+
+    try
     {
-        Task.Run(UploadNewCrashDataAsync);
+        Debug.Log("Uploading crash data to Azure...");
+        foreach (var item in newCrashes)
+            await crashTable.InsertAsync(item);
+        Debug.Log("Finished uploading crash data.");
     }
-
-    private async Task UploadNewCrashDataAsync()
+    catch (System.Exception e)
     {
-        var crashTable = AzureMobileServiceClient.Client.GetTable<CrashInfo>();
-
-        try
-        {
-            Debug.Log("Uploading crash data to Azure...");
-            foreach (var item in newCrashes)
-                await crashTable.InsertAsync(item);
-            Debug.Log("Finished uploading crash data.");
-        }
-        catch (System.Exception e)
-        {
-            Debug.Log("Error uploading crash data: " + e.Message);
-        }
+        Debug.Log("Error uploading crash data: " + e.Message);
     }
 }
 ```
@@ -420,53 +411,50 @@ This script checks to see if the player has earned a new high score. If they hav
 Once a player name is submitted, `UploadNewHighScoreAsync` is called and the new high score is sent to the HighScoreInfo Easy Table on Azure.  Here are the important parts:
 
 ```csharp
-public class RecordHighScore : MonoBehaviour
+private List<HighScoreInfo> highScores;
+private string playerName = string.Empty;
+
+private async void Start()
 {
-    private List<HighScoreInfo> highScores;
-    private string playerName = string.Empty;
+    highScores = await Leaderboard.GetTopHighScoresAsync();
+}
 
-    private async void Start()
+private async void OnAfterMostRecentScoreSet(float newScore)
+{
+    bool isNewHighScore = CheckForNewHighScore(newScore);
+
+    if (isNewHighScore)
     {
-        highScores = await Leaderboard.GetTopHighScoresAsync();
+        Debug.Log("New High Score!");
+        await GetPlayerNameAsync();
+        await UploadNewHighScoreAsync(newScore);
     }
+    else
+        Debug.Log("No new high score.");
+}
 
-    private async void OnAfterMostRecentScoreSet(float newScore)
+private bool CheckForNewHighScore(float newScore)
+{
+    Debug.Log("Checking for a new high score...");
+    bool isHighScoreListFull = highScores.Count >= Leaderboard.SizeOfHighScoreList;
+    var lowerScores = highScores.Where(x => x.Time > newScore);
+
+    return lowerScores.Count() > 0 || !isHighScoreListFull;
+}
+
+private async Task UploadNewHighScoreAsync(float newScore)
+{
+    var newHighScoreInfo = new HighScoreInfo { Name = playerName, Time = newScore };
+
+    try
     {
-        bool isNewHighScore = CheckForNewHighScore(newScore);
-
-        if (isNewHighScore)
-        {
-            Debug.Log("New High Score!");
-            await GetPlayerNameAsync();
-            await UploadNewHighScoreAsync(newScore);
-        }
-        else
-            Debug.Log("No new high score.");
+        Debug.Log("Uploading high score data to Azure...");
+        await Leaderboard.HighScoreTable.InsertAsync(newHighScoreInfo);
+        Debug.Log("Finished uploading high score data.");
     }
-
-    private bool CheckForNewHighScore(float newScore)
+    catch (System.Exception e)
     {
-        Debug.Log("Checking for a new high score...");
-        bool isHighScoreListFull = highScores.Count >= Leaderboard.SizeOfHighScoreList;
-        var lowerScores = highScores.Where(x => x.Time > newScore);
-
-        return lowerScores.Count() > 0 || !isHighScoreListFull;
-    }
-
-    private async Task UploadNewHighScoreAsync(float newScore)
-    {
-        var newHighScoreInfo = new HighScoreInfo { Name = playerName, Time = newScore };
-
-        try
-        {
-            Debug.Log("Uploading high score data to Azure...");
-            await Leaderboard.HighScoreTable.InsertAsync(newHighScoreInfo);
-            Debug.Log("Finished uploading high score data.");
-        }
-        catch (System.Exception e)
-        {
-            Debug.Log("Error uploading high score data: " + e.Message);
-        }
+        Debug.Log("Error uploading high score data: " + e.Message);
     }
 }
 ```
@@ -477,11 +465,11 @@ The HeatmapScene contains an instance of the **LevelGeometry** prefab. This way 
 
 ### InitializeCrashListAsync method
 
-`InitializeCrashListAsync` connects to the CrashInfo Easy Table on Azure and uses [ToListAsync](TODO) to add all of its entries to a list.
+`InitializeCrashListAsync` connects to the CrashInfo Easy Table on Azure and uses `ToListAsync` to add all of its entries to a List object.
 
 ```csharp
 private async Task InitializeCrashListAsync()
- {
+{
      Debug.Log("Downloading crash data from Azure...");
 
      for (int i = 0; i < numberOfAttempts; i++)
@@ -508,7 +496,7 @@ private async Task InitializeCrashListAsync()
 
 ### DeleteCrashDataAsync method
 
-`DeleteCrashDataAsync` is called when the user presses the **Clear Data** button. It iterates through the local list of crashes and calls [DeleteAsync](TODO) for each entry. This sets each entry's **Deleted** column in the Easy Table to **true**. `ToListAsync` ignores these deleted entries.
+`DeleteCrashDataAsync` is called when the user presses the **Clear Data** button. It iterates through the local list of crashes and calls `DeleteAsync` for each entry. This sets each entry's **Deleted** column in the Easy Table to **true**. `ToListAsync` ignores these deleted entries.
 
 ```csharp
 public async void DeleteCrashDataAsync()
@@ -534,9 +522,7 @@ public async void DeleteCrashDataAsync()
 
 The `Leaderboard` class uses an `async Start` function, which is still called when the script is enabled, just like a typical Unity `Start` function.
 
-`DownloadHighScoresAsync` uses the `OrderBy` and `Take` functions of [IMobileServiceTable](TODO) to sort the high scores in the Azure Easy Table and only take the top entries based on the `SizeOfHighScoreList` constant, which are stored in the `highScores` list.
-
-Then an instance of the high score row UI prefab is instantiated for each entry in the list.
+`DownloadHighScoresAsync` uses the `Sort` and `GetRange` functions to sort the high scores in the Azure Easy Table and only take the top entries based on the `SizeOfHighScoreList` constant, which are stored in the `highScoreList` list.
 
 ```csharp
 public class Leaderboard : MonoBehaviour
