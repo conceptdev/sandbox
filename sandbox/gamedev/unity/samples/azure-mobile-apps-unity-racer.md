@@ -26,7 +26,7 @@ These steps will walk through the process of setting up a Unity project that lev
 > [!NOTE]
 > This project requires the "experimental" .NET 4.6 Mono scripting runtime in Unity 2017. [Unity has stated that soon this will be the default](https://forum.unity3d.com/threads/future-plans-for-the-mono-runtime-upgrade.464327/), however for now, it is still labeled as "experimental" and you may experience issues.
 >
-> In addition, we will be using an experimental Azure Mobile Client SDK in this tutorial, and, as such, this may not build and run on every single Unity platform.  Please see the [Azure Mobile Apps SDK for Unity](/sandbox/gamedev/unity/azure-mobile-apps-unity) article for a list of known working platforms.
+> In addition, we will be using an experimental Azure Mobile Client SDK in this tutorial, and, as such, this may not build and run on every single Unity platform.  Please see the [Azure Mobile Apps SDK for Unity](/sandbox/gamedev/unity/azure-mobile-apps-unity) article for a list of known working platforms and issues.
 
 ## Configure Easy Tables in Azure
 
@@ -163,13 +163,13 @@ There are some prerequisites to using the exerpimental Azure Mobile Client SDK i
 
 ### Download and install Unity 2017
 
-Unity 2017.1 or above is required. All Unity plans work with the walkthrough, including the free Personal plan. Download Unity from https://store.unity.com/.
+Unity 2017.1 or higher is required. All Unity plans work with the walkthrough, including the free Personal plan. You can download Unity from [https://store.unity.com/](https://store.unity.com/).
 
 ### Download and install Visual Studio 2017
 
-The walkthrough requires Visual Studio 2017 15.3 and above, with the game development with Unity workload. All editions of Visual Studio 2017 work with the walkthrough, including the free Community edition.
+The walkthrough requires Visual Studio 2017 15.3 or above, with the game development with Unity workload. All editions of Visual Studio 2017 work with the walkthrough, including the free Community edition.
 
-1. Download Visual Studio 2017 at https://www.visualstudio.com/.
+1. Download Visual Studio 2017 at [https://www.visualstudio.com/](https://www.visualstudio.com/).
 
 1. Install Visual Studio 2017 and ensure that the **Game development with Unity** workload is enabled.
 
@@ -180,7 +180,7 @@ The walkthrough requires Visual Studio 2017 15.3 and above, with the game develo
 
 ### Download the Project
 
-Clone from GitHub or download
+This project is located in the [AzureSamples-Unity repo](https://aka.ms/azsamples-unity) on GitHub.  On the GitHub site, click the **Clone or download** button to get a copy of the code to work with.
 
 ## Project Walkthrough
 
@@ -198,11 +198,11 @@ The Azure Mobile Client SDK and its dependencies require the .NET 4.6 runtime.  
 
 ### Import the Mobile Apps SDK
 
-**TODO**
+The game uses an experimental Mobile Apps SDK. To learn more about the SDK, known issues, and supported platforms, please see its corresponding article on [The Sandbox](https://aka.ms/azmobileappsgamedev).
 
-## CrashInfo class
+## CrashInfo and HighScoreInfo classes
 
-The Unity project must contain data model classes that correspond with the tables created in the Azure Mobile App backend.  You can find these in the **Assets\Scripts\Data Models** directory in the project.
+The Unity project must contain data model classes that correspond with the tables created in the Azure Mobile App backend.  You can find these in the **Assets/Scripts/Data Models** directory in the project.
 
 The **CrashInfo**  class looks like this:
 
@@ -216,12 +216,7 @@ public class CrashInfo
 }
 ```
 
-> [!INFO]
-> For Easy Tables to work, the name of the data model class must match the name of the Easy Table created on the Azure Mobile App backend.
-
-### HighScoreInfo class
-
-This class will contain the information required to store a high score entry:
+And the **HighScoreInfo** class looks like this:
 
 ```csharp
 public class HighScoreInfo
@@ -232,9 +227,12 @@ public class HighScoreInfo
 }
 ```
 
+> [!INFO]
+> For Easy Tables to work, the name of the data model classes must match the name of the Easy Table created on the Azure Mobile App backend.
+
 ## The Azure MobileServiceClient
 
-Central to the Azure Mobile Client SDK is the [MobileServiceClient](TODO), which allows access to your Mobile App backend.  To use this, you will need the URL of your mobile service backend.
+Central to the Azure Mobile Client SDK is the [MobileServiceClient](https://docs.microsoft.com/en-us/dotnet/api/microsoft.windowsazure.mobileservices.mobileserviceclient?view=azure-dotnet), which allows access to your Mobile App backend.  To use this, you will need the URL of your mobile service backend.
 
 ### Locate the URL of the Mobile App backend
 
@@ -252,7 +250,7 @@ The `MobileServiceClient` constructor takes the Mobile App URL as a parameter, s
 
    ![Copy URL](media/vstu_azure-implement-azure-mobileserviceclient-image3.png)
 
-### The obileServiceClient singleton
+### The MobileServiceClient singleton
 
 There should only be a single instance of `MobileServiceClient`, so the walkthrough uses a variation of the singleton pattern.
 
@@ -280,19 +278,23 @@ public static class AzureMobileServiceClient
 }
 ```
 
-1. In the preceding code, replace `MOBILE_APP_URL` with the URL of your Mobile App backend, however ensure you are using the **http://** endpoint and not **https://**.  Due to a Unity limitation, HTTPS requests using the standard .NET networking stack (i.e. not using UnityWebRequest) will fail.  To workaround this, you will need to use the **http** version of the Mobile Apps endpoint instead of **https**.  **This means your data will not be encrypted to and from the server.**
+1. In the preceding code, replace `MOBILE_APP_URL` with the URL of your Mobile App backend, however ensure you are using the **http://** endpoint and not **https://**.
+
+>[!NOTE]
+>Due to a Unity limitation, HTTPS requests using the standard .NET networking stack (i.e. not using UnityWebRequest) will fail.  To workaround this, you will need to use the **http** version of the Mobile Apps endpoint instead of **https**.  **This means your data will not be encrypted to and from the server.**
 
 ## Test the client connection
 
 Now that the AzureMobileServiceClient singleton is created, it's time to test the client connection.  This is done with the **TestClientConnection.cs** script located in the **Scripts** directory.  To use it, do the following:
 
-1. In the Unity **GameObject** menu, select **GameObject > Create Empty** to create an empty GameObject in the Unity scene. Rename it **TestClientConnection**.
+1. Open the **MenuScene** scene located in the **Assets/Scenes** directory.
 
-1. **Drag** the **TestClientConnection** script from the Unity **Project** window onto the TestClientConnection GameObject in the **Hierarchy** window.
-
-1. In the Unity menu, select **File > Save Scene as...**. Name the scene **Client Connection Test** and click **Save**.
+1. **Drag** the **TestClientConnection** script from the Unity **Project** window onto the **Main Camera** GameObject in the **Hierarchy** window.
 
 1. Click the **Play** button in Unity and observe the Console window. Confirm that none of the assertions have failed.
+
+>[!NOTE]
+>The App Service will time out after a period of inactivity. It may take a moment to spin back up when it is hit again, so if the first test fails, please try one more time to ensure the service is in its running state. Alternatively, use a web browser to visit the service's URL from above and wait for the page to be returned before running the test in Unity.
 
 1. Open the CrashInfo Easy Table on the Azure portal. It should now have an entry with **X,Y,Z** coordinates of **(1, 2, 3)** and a value of **true** for in the **deleted** column. Each time you run the test, a new entry with the same values but a unique ID should be added to the table.
 
@@ -306,7 +308,7 @@ This section will simply explain how to play the sample game and ensure it's fun
 
 ### Starting the game
 
-1. In the Unity Project window, navigate to the **Assets/Azure Easy Tables sample game assets/Scenes** folder.
+1. In the Unity Project window, navigate to the **Assets/Scenes** folder.
 
 1. Double click the **MenuScene** to open it.
 
@@ -371,7 +373,6 @@ public class RecordCrashInfo : MonoBehaviour
         if (!isRaceFinished && collision.gameObject.tag == "Wall" && !isOnCooldown && meetsMinVelocity)
         {
             Debug.Log("Collided with wall!");
-
             newCrashes.Add(new CrashInfo
             {
                 X = collision.transform.position.x,
@@ -400,11 +401,8 @@ public class RecordCrashInfo : MonoBehaviour
         try
         {
             Debug.Log("Uploading crash data to Azure...");
-
             foreach (var item in newCrashes)
-            {
                 await crashTable.InsertAsync(item);
-            }
             Debug.Log("Finished uploading crash data.");
         }
         catch (System.Exception e)
@@ -443,15 +441,12 @@ public class RecordHighScore : MonoBehaviour
             await UploadNewHighScoreAsync(newScore);
         }
         else
-        {
             Debug.Log("No new high score.");
-        }
     }
 
     private bool CheckForNewHighScore(float newScore)
     {
         Debug.Log("Checking for a new high score...");
-
         bool isHighScoreListFull = highScores.Count >= Leaderboard.SizeOfHighScoreList;
         var lowerScores = highScores.Where(x => x.Time > newScore);
 
@@ -465,9 +460,7 @@ public class RecordHighScore : MonoBehaviour
         try
         {
             Debug.Log("Uploading high score data to Azure...");
-
             await Leaderboard.HighScoreTable.InsertAsync(newHighScoreInfo);
-
             Debug.Log("Finished uploading high score data.");
         }
         catch (System.Exception e)
@@ -557,9 +550,7 @@ public class Leaderboard : MonoBehaviour
         get
         {
             if (highScoreTable_UseProperty == null)
-            {
                 highScoreTable_UseProperty = AzureMobileServiceClient.Client.GetTable<HighScoreInfo>();
-            }
 
             return highScoreTable_UseProperty;
         }
@@ -584,15 +575,16 @@ public class Leaderboard : MonoBehaviour
 
                 if (onlyTopEntries)
                 {
-                    highScoreList = await HighScoreTable
-                        .OrderBy(item => item.Time)
-                        .Take(SizeOfHighScoreList)
-                        .ToListAsync();
+                    // NOTE: We'd normally use OrderBy here, however that uses reflection
+                    // and DynamicInvoke which are not supported in IL2CPP exports for Unity
+                    // That means using OrderBy would stop this from wokring on iOS 
+                    // (and other platforms where IL2CPP is used)
+                    List<HighScoreInfo> list = await HighScoreTable.ToListAsync();
+                    list.Sort((a,b) => a.Time.CompareTo(b.Time));
+                    highScoreList = list.GetRange(0, list.Count > SizeOfHighScoreList ? SizeOfHighScoreList : list.Count);
                 }
                 else
-                {
                     highScoreList = await HighScoreTable.ToListAsync();
-                }
 
                 Debug.Log("Done downloading high score data.");
                 return highScoreList;
@@ -618,9 +610,7 @@ public class Leaderboard : MonoBehaviour
         var highScores = await GetTopHighScoresAsync();
 
         if (highScores.Count == 0)
-        {
             ShowEmptyLeaderboardMessage();
-        }
         else
         {
             loadingText.gameObject.SetActive(false);
@@ -640,7 +630,7 @@ public class Leaderboard : MonoBehaviour
 
     public static async Task DeleteAllEntriesAsync()
     {
-       Debug.Log("Deleting leaderboard data...");
+        Debug.Log("Deleting leaderboard data...");
 
         var fullHighScoreList = await DownloadHighScoresAsync(false);
 
