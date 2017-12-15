@@ -303,6 +303,10 @@ The sample game is a simple racing game that records data about the player's beh
 
 This section will simply explain how to play the sample game and ensure it's functioning correctly. The next sections will go into more detail explaining how the sample game works.
 
+## Export for at target platform
+
+In addition, you can export and run the Unity game on a target platform.  The experimental Mobile Apps SDK supports the most popular Unity targets.  Please check the [Azure Mobile Apps SDK for Unity](/sandbox/gamedev/unity/azure-mobile-apps-unity) article to see which platforms are supported and any known issues for exporting to those platforms.
+
 ### Starting the game
 
 1. In the Unity Project window, navigate to the **Assets/Scenes** folder.
@@ -631,10 +635,6 @@ public class Leaderboard : MonoBehaviour
     }
 }
 ```
-
-## Export for a Target Platform
-
-The experimental Mobile Apps SDK supports the most popular Unity targets.  Please check the [Azure Mobile Apps SDK for Unity](/sandbox/gamedev/unity/azure-mobile-apps-unity) article to see which platforms are supported and any known issues for exporting to those platforms.
 
 ## Next Steps
 
