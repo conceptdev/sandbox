@@ -636,10 +636,6 @@ public class Leaderboard : MonoBehaviour
 
 The experimental Mobile Apps SDK supports the most popular Unity targets.  Please check the [Azure Mobile Apps SDK for Unity](/sandbox/gamedev/unity/azure-mobile-apps-unity) article to see which platforms are supported and any known issues for exporting to those platforms.
 
-## Conclusion
-
-In this sample we demonstrated how to setup a new Azure Mobile App, create new Easy Tables with the portal, and then connect to those tables using Unity and the experimental Mobile Apps SDK as a client.
-
 ## Next Steps
 
 * [Azure Mobile Apps SDK for Unity](/sandbox/gamedev/unity/azure-mobile-apps-unity)
