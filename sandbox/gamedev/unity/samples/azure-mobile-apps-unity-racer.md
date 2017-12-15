@@ -260,7 +260,6 @@ using Microsoft.WindowsAzure.MobileServices;
 
 public static class AzureMobileServiceClient
 {
-    private const bool ignoreTls = true;
     private const string backendUrl = "MOBILE_APP_URL";
     private static MobileServiceClient client;
 
