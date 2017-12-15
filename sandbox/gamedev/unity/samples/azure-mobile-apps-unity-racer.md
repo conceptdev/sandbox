@@ -21,7 +21,7 @@ manager: "crdun"
 
 Azure provides a scalable solution to storing telemetry and other game data in the cloud. With the release of Unity 2017, Unity's experimental support for .NET 4.6 makes Azure integration simpler than ever.
 
-This sample will walk through the process of using Easy Tables to save telemetry and leaderboard data in Azure using the Mobile Apps SDK.  The completed project is available on [GitHub](https://aka.ms/azsamples-unity).
+This sample will walk through the process of using Easy Tables to save telemetry and leaderboard data in Azure using the experimental [Mobile Apps SDK for Unity](/sandbox/gamedev/unity/azure-mobile-apps-unity).
 
 ![Sample game screenshot](media/vstu_azure-test-sample-game-image2.png)
 
@@ -50,14 +50,16 @@ Log in to the [Azure portal](https://ms.portal.azure.com). If you do not have an
   ![Create a new Mobile App](media/vstu_azure-configure-easy-tables-image1.png)
 
 1. Configure the new Mobile App:
-   * **App Name**. This will build the URL used to connect to the Azure Mobile App backend. You must choose a unique name, indicated by the green checkmark.
-   * **Subscription**. Choose the subscription the new Mobile App will use for billing.
-   * **Resource Group**. Resource groups allow easier management of related resources. By default Azure creates a new resource group with the same name as the new app. The default setting works well for the walkthrough.
-   * **App Service Plan/Location**. The service plan dictates the computing power, location, and cost of the resources Azure uses to host your new Mobile App. By default Azure will create a new service plan with some default settings. This is the simplest option for this walkthrough. However, you can use this menu to customize a new service plan's pricing tier or geographic location. Additionally, settings for a service plan can be modified after deploying it.
+   Setting | Description
+   --- | ---
+   **App Name** | This will be used to create the URL for connecting to the Azure Mobile App backend. You must choose a unique name, indicated by the green checkmark.
+   **Subscription** | Choose the subscription the new Mobile App will use for billing.
+   **Resource Group** | Resource groups allow easier management of related resources. By default Azure creates a new resource group with the same name as the new app. The default setting works well for the walkthrough.
+   **App Service Plan/Location** | The service plan dictates the computing power, location, and cost of the resources Azure uses to host your new Mobile App. By default Azure will create a new service plan with some default settings. This is the simplest option for this walkthrough. However, you can use this menu to customize a new service plan's pricing tier or geographic location. Additionally, settings for a service plan can be modified after deploying it.
 
    ![Create a new Mobile App](media/vstu_azure-configure-easy-tables-image2.png)
 
-1. Select **Create** and give Azure a few minutes to deploy the new resource. You will see a notification in the Azure Portal when deployment has completed.
+1. Click **Create** and give Azure a few minutes to deploy the new resource. You will see a notification in the Azure Portal when deployment has completed.
 
 ### Add a new data connection
 
@@ -69,7 +71,7 @@ Log in to the [Azure portal](https://ms.portal.azure.com). If you do not have an
 
    ![Select Easy Tables](media/vstu_azure-configure-easy-tables-image4.png)
 
-1. Click the blue **Need to configure Easy Tables/Easy APIs** notice displaying along the top of the Easy Tables blade.
+1. Click the blue **Need to configure Easy Tables/Easy APIs** notice displaying along the top of the Easy Tables blade on the right side of the screen.
 
    ![Click configure Easy Tables notice](media/vstu_azure-configure-easy-tables-image5.png)
 
@@ -86,15 +88,15 @@ Log in to the [Azure portal](https://ms.portal.azure.com). If you do not have an
    ![Select SQL Database](media/vstu_azure-configure-easy-tables-image8.png)
 
 1. A blade will open for configuring a new SQL database and SQL server:
-   * **Name**. Enter a name for the database.
-   * **Target server**. Click **Target server** to open the New server blade.
-     * **Server name**. Enter a name for the server.
-     * **Server admin login and Password**. Create a username and password for the server admin.
-     * **Location**. Choose a nearby location for the server.
+   * **Name:** Enter a name for the database.
+   * **Target server:** Click **Target server** to open the New server blade.
+     * **Server name:** Enter a name for the server.
+     * **Server admin login and Password:** Create a username and password for the server admin.
+     * **Location:** Choose a nearby location for the server.
      * Ensure that the **Allow azure services to access server** checkbox remains checked.
      * Click **Select** to complete configuration the server.
-   * **Pricing tier**. Leave the default setting for the walkthrough. This can be modified later.
-   * **Collation**. Leave the default setting.
+   * **Pricing tier:** Leave the default setting for the walkthrough. This can be modified later.
+   * **Collation:** Leave the default setting.
    * Click **Select** to complete configuration of the database.
 
    ![Configure SQL server and database](media/vstu_azure-configure-easy-tables-image9.png)
@@ -103,7 +105,7 @@ Log in to the [Azure portal](https://ms.portal.azure.com). If you do not have an
 
    ![Click Connection String](media/vstu_azure-configure-easy-tables-image9.1.png)
 
-1. Back at the Add data connection blade, the text "MS_TableConnectionString" should no longer be in italics. Click **OK** and give Azure a few minutes to create the new data connection. A notification will arrive when the process is complete.
+1. Back at the Add data connection blade, the text **MS_TableConnectionString** should no longer be in italics. Click **OK** and give Azure a few minutes to create the new data connection. A notification will arrive when the process is complete.
 
    ![Click OK](media/vstu_azure-configure-easy-tables-image9.2.png)
 
@@ -125,22 +127,19 @@ Now that you have a Mobile App on Azure with Easy Tables initialized, it's time 
 
 ### Setup the crash heatmap table
 
-1. In the Azure portal, click All resources and then select the Mobile App that you configured for Easy Tables in the previous steps.
+1. In the Azure portal, click **All resources** and then select the Mobile App that you configured for Easy Tables in the previous steps.
 
    ![Select Mobile App](media/vstu_azure-setup-table-schema-image1.png)
 
-1. Scroll down to the **MOBILE** heading and select **Easy Tables**. There should no longer be any notice about initializing your app for Easy Tables.  
+1. Scroll down to the **Mobile** heading and select **Easy Tables**. There should no longer be any notice about initializing your app for Easy Tables.
 
    ![Select Easy Tables](media/vstu_azure-setup-table-schema-image2.png)
 
-1. Click the **Add** button.
+1. Click the **Add** button in the Easy Tables blade on the right side of the screen.
 
    ![Click Add](media/vstu_azure-setup-table-schema-image3.png)
 
 1. Name the table "**CrashInfo**" and click **OK**. Leave the rest of the options with their default settings.
-
-   > [!WARNING]
-   > This name must match the name of the data model class created later in the walkthrough.
 
    ![Name and click OK](media/vstu_azure-setup-table-schema-image4.png)
 
@@ -156,9 +155,6 @@ Now that you have a Mobile App on Azure with Easy Tables initialized, it's time 
    ![Add a second table](media/vstu_azure-setup-table-schema-image10.png)
 
 1. Name the new table "**HighScoreInfo**" and click **OK**. Leave the rest of the options at their default settings.
-
-   > [!WARNING]
-   > This name must match the name of the data model class created later in the walkthrough.
 
    ![Name and click OK](media/vstu_azure-setup-table-schema-image11.png)
 
@@ -185,27 +181,23 @@ The walkthrough requires Visual Studio 2017 15.3 or above, with the game develop
    > [!NOTE]
    > If Visual Studio 2017 is already installed, you can view and modify workloads by running the Visual Studio Installer.
 
-### Download the Project
+### Download the project
 
 This project is located in the [AzureSamples-Unity repo](https://aka.ms/azsamples-unity) on GitHub.  On the GitHub site, click the **Clone or download** button to get a copy of the code to work with.
 
 ## Project Walkthrough
 
-This is a large project, so we will explore the important parts that demonstrate how to use Easy Tables with the experimental Mobile Apps SDK.
+This is a large project, so we will explore the important parts that demonstrate how to use Easy Tables with Unity.
 
-### Unity Scripting Runtime
+### Unity scripting runtime
 
-The Azure Mobile Client SDK and its dependencies require the .NET 4.6 runtime.  You'll find that this is set in the project settings.
+The Azure Mobile Client SDK and its dependencies require the .NET 4.6 runtime.  This is set in the project settings.
 
 1. From the Unity **Edit** menu, choose **Project Settings > Player**.
 
 1. The Player Settings opens in the Unity Inspector window. Under the **Configuration** heading in the **Other Settings** section, click the **Scripting Runtime Version** dropdown and select **Experimental (.NET 4.6 Equivalent)**. This will prompt a dialog asking to restart Unity. Select **Restart**.
 
    ![Select .NET 4.6](media/vstu_azure-prepare-dev-environment-image6.png)
-
-### Import the Mobile Apps SDK
-
-The game uses an experimental Mobile Apps SDK. To learn more about the SDK, known issues, and supported platforms, please see its corresponding article on [The Sandbox](https://aka.ms/azmobileappsgamedev).
 
 ## CrashInfo and HighScoreInfo classes
 
@@ -292,18 +284,16 @@ public static class AzureMobileServiceClient
 
 ## Test the client connection
 
-Now that the AzureMobileServiceClient singleton is created, it's time to test the client connection.  This is done with the **TestClientConnection.cs** script located in the **Scripts** directory.  To use it, do the following:
+Now that the `AzureMobileServiceClient` singleton is created, it's time to test the client connection.  This is done with the **TestClientConnection.cs** script located in the **Scripts** directory.  To use it, do the following:
 
-1. Open the **MenuScene** scene located in the **Assets/Scenes** directory.
+1. Open the **TestScene** scene located in the **Assets/Scenes** directory.  An instance of the **TestClientConnection** script is attached to the **Main Camera** GameObject.
 
-1. **Drag** the **TestClientConnection** script from the Unity **Project** window onto the **Main Camera** GameObject in the **Hierarchy** window.
-
-1. Click the **Play** button in Unity and observe the Console window. Confirm that none of the assertions have failed.
+1. Click the **Play** button in Unity and observe the **Console** window to confirm that none of the assertions have failed.
 
 >[!NOTE]
 >The App Service will time out after a period of inactivity. It may take a moment to spin back up when it is hit again, so if the first test fails, please try one more time to ensure the service is in its running state. Alternatively, use a web browser to visit the service's URL from above and wait for the page to be returned before running the test in Unity.
 
-1. Open the CrashInfo Easy Table on the Azure portal. It should now have an entry with **X,Y,Z** coordinates of **(1, 2, 3)** and a value of **true** for in the **deleted** column. Each time you run the test, a new entry with the same values but a unique ID should be added to the table.
+1. Open the **CrashInfo** Easy Table on the Azure portal. It should now have an entry with **X,Y,Z** coordinates of **(1, 2, 3)** and a value of **true** for in the **deleted** column. Each time you run the test, a new entry with the same values but a unique ID should be added to the table.
 
   ![Easy Table entry](media/vstu_azure-test-client-connection-image1.png)
 
@@ -645,3 +635,14 @@ public class Leaderboard : MonoBehaviour
 ## Export for a Target Platform
 
 The experimental Mobile Apps SDK supports the most popular Unity targets.  Please check the [Azure Mobile Apps SDK for Unity](/sandbox/gamedev/unity/azure-mobile-apps-unity) article to see which platforms are supported and any known issues for exporting to those platforms.
+
+## Conclusion
+
+In this sample we demonstrated how to setup a new Azure Mobile App, create new Easy Tables with the portal, and then connect to those tables using Unity and the experimental Mobile Apps SDK as a client.
+
+## Next Steps
+
+* [Azure Mobile Apps SDK for Unity](/sandbox/gamedev/unity/azure-mobile-apps-unity)
+* [Other Unity SDKs for Azure](/sandbox/gamedev/)
+* [Mobile Apps Documentation](/azure/app-service-mobile/)
+* [Azure Samples with Unity](https://aka.ms/azsamples-unity)
